@@ -4,6 +4,8 @@ terraform/*.tfstate
 terraform/*.tfstate.backup
 terraform/.terraform.lock.hcl
 terraform/terraform.tfvars
+terraform/terraform.exe
+terraform/LICENSE.txt
 
 # GCP service account keys — never commit these
 *.json.key
