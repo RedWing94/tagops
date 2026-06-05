@@ -56,3 +56,47 @@ resource "google_bigquery_dataset_iam_member" "sgtm_data_editor" {
   role       = "roles/bigquery.dataEditor"
   member     = "serviceAccount:${google_service_account.sgtm.email}"
 }
+
+# =====================================================
+# Phase 3 — Deploy sGTM to Cloud Run
+# =====================================================
+
+resource "google_cloud_run_v2_service" "sgtm" {
+  name     = "sgtm-server"
+  location = var.region
+
+  # Wait for the Cloud Run API to be enabled
+  depends_on = [google_project_service.cloud_run]
+
+  template {
+    # COST GUARD: scale to zero — never set above 0
+    scaling {
+      min_instance_count = 0
+      max_instance_count = 2
+    }
+
+    service_account = google_service_account.sgtm.email
+
+    containers {
+      image = "gcr.io/cloud-tagging-10302018/gtm-cloud-image:stable"
+
+      ports {
+        container_port = 8080
+      }
+
+      # Container config from GTM — references the sensitive variable, never hardcoded
+      env {
+        name  = "CONTAINER_CONFIG"
+        value = var.container_config
+      }
+    }
+  }
+}
+
+# Allow unauthenticated access (public sGTM endpoint)
+resource "google_cloud_run_v2_service_iam_member" "sgtm_public" {
+  name     = google_cloud_run_v2_service.sgtm.name
+  location = google_cloud_run_v2_service.sgtm.location
+  role     = "roles/run.invoker"
+  member   = "allUsers"
+}
