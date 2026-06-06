@@ -1,0 +1,7 @@
+# Copy this file to terraform.tfvars and fill in real values.
+# terraform.tfvars is gitignored — NEVER commit it.
+
+project_id       = "tagops-498522"
+region           = "us-central1"
+container_config = "your-gtm-container-config-string"
+custom_domain    = "data.hoerrsolutions.com"
