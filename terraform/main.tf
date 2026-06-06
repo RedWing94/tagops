@@ -49,6 +49,26 @@ resource "google_bigquery_dataset" "tagops_analytics" {
   default_table_expiration_ms = null
 }
 
+# --- BigQuery events table (matches the sGTM tag template schema) ---
+
+resource "google_bigquery_table" "events" {
+  dataset_id          = google_bigquery_dataset.tagops_analytics.dataset_id
+  table_id            = "events"
+  deletion_protection = false
+
+  schema = jsonencode([
+    { name = "event_name",      type = "STRING",  mode = "NULLABLE" },
+    { name = "event_timestamp", type = "INTEGER", mode = "NULLABLE" },
+    { name = "client_id",       type = "STRING",  mode = "NULLABLE" },
+    { name = "page_location",   type = "STRING",  mode = "NULLABLE" },
+    { name = "page_referrer",   type = "STRING",  mode = "NULLABLE" },
+    { name = "page_title",      type = "STRING",  mode = "NULLABLE" },
+    { name = "user_agent",      type = "STRING",  mode = "NULLABLE" },
+    { name = "ip_override",     type = "STRING",  mode = "NULLABLE" },
+    { name = "event_data",      type = "STRING",  mode = "NULLABLE" }
+  ])
+}
+
 # --- Grant the sGTM service account write access to BigQuery ---
 
 resource "google_bigquery_dataset_iam_member" "sgtm_data_editor" {
