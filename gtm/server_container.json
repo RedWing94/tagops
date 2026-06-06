@@ -1,0 +1,93 @@
+{
+    "exportFormatVersion": 2,
+    "exportTime": "2026-06-06 13:51:28",
+    "containerVersion": {
+        "path": "accounts/6235134427/containers/242362801/versions/0",
+        "accountId": "6235134427",
+        "containerId": "242362801",
+        "containerVersionId": "0",
+        "container": {
+            "path": "accounts/6235134427/containers/242362801",
+            "accountId": "6235134427",
+            "containerId": "242362801",
+            "name": "Hoerr Solutions | Server-Side",
+            "publicId": "GTM-5FGVWFGJ",
+            "usageContext": [
+                "SERVER"
+            ],
+            "fingerprint": "1769913764872",
+            "tagManagerUrl": "https://tagmanager.google.com/#/container/accounts/6235134427/containers/242362801/workspaces?apiLink=container",
+            "features": {
+                "supportUserPermissions": true,
+                "supportEnvironments": true,
+                "supportWorkspaces": true,
+                "supportGtagConfigs": false,
+                "supportBuiltInVariables": true,
+                "supportClients": true,
+                "supportFolders": true,
+                "supportTags": true,
+                "supportTemplates": true,
+                "supportTriggers": true,
+                "supportVariables": true,
+                "supportVersions": true,
+                "supportZones": true,
+                "supportTransformations": true
+            },
+            "tagIds": [
+                "GTM-5FGVWFGJ"
+            ]
+        },
+        "builtInVariable": [
+            {
+                "accountId": "6235134427",
+                "containerId": "242362801",
+                "type": "EVENT_NAME",
+                "name": "Event Name"
+            }
+        ],
+        "fingerprint": "1780753888973",
+        "tagManagerUrl": "https://tagmanager.google.com/#/versions/accounts/6235134427/containers/242362801/versions/0?apiLink=version",
+        "client": [
+            {
+                "accountId": "6235134427",
+                "containerId": "242362801",
+                "clientId": "1",
+                "name": "GA4",
+                "type": "gaaw_client",
+                "parameter": [
+                    {
+                        "type": "BOOLEAN",
+                        "key": "activateDefaultPaths",
+                        "value": "true"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "cookieManagement",
+                        "value": "server"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "cookieName",
+                        "value": "FPID"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "cookieDomain",
+                        "value": "auto"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "cookiePath",
+                        "value": "/"
+                    },
+                    {
+                        "type": "TEMPLATE",
+                        "key": "cookieMaxAgeInSec",
+                        "value": "63072000"
+                    }
+                ],
+                "fingerprint": "1769913764874"
+            }
+        ]
+    }
+}
