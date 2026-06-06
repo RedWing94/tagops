@@ -55,41 +55,34 @@ const BigQuery = require('BigQuery');
 const getAllEventData = require('getAllEventData');
 const getTimestampMillis = require('getTimestampMillis');
 const JSON = require('JSON');
-const log = require('logToConsole');
+const logToConsole = require('logToConsole');
 
-// Gather all event data from the incoming request
 const eventData = getAllEventData();
 
-// Build the BigQuery row
 const row = {
-  event_name: eventData.event_name || '(not set)',
+  event_name: eventData.event_name,
   event_timestamp: getTimestampMillis(),
-  client_id: eventData.client_id || '',
-  page_location: eventData.page_location || '',
-  page_referrer: eventData.page_referrer || '',
-  page_title: eventData.page_title || '',
-  user_agent: eventData.user_agent || '',
-  ip_override: eventData.ip_override || '',
+  client_id: eventData.client_id,
+  page_location: eventData.page_location,
+  page_referrer: eventData.page_referrer,
+  page_title: eventData.page_title,
+  user_agent: eventData.user_agent,
+  ip_override: eventData.ip_override,
   event_data: JSON.stringify(eventData)
 };
 
 const connectionInfo = {
-  projectId: data.projectId,
-  datasetId: data.datasetId,
-  tableId: data.tableId
+  projectId: 'tagops-498522',
+  datasetId: 'tagops_analytics',
+  tableId: 'events'
 };
 
-const options = {
-  ignoreUnknownValues: true,
-  skipInvalidRows: false
-};
-
-BigQuery.insert(connectionInfo, [row], options)
+BigQuery.insert(connectionInfo, [row], {ignoreUnknownValues: true, skipInvalidRows: false})
   .then(() => {
-    log('BigQuery Event Logger: inserted event ' + row.event_name);
+    logToConsole('BigQuery insert OK: ' + eventData.event_name);
     data.gtmOnSuccess();
-  }, (errors) => {
-    log('BigQuery Event Logger: insert failed — ' + JSON.stringify(errors));
+  }, (err) => {
+    logToConsole('BigQuery insert FAILED: ' + JSON.stringify(err));
     data.gtmOnFailure();
   });
 
