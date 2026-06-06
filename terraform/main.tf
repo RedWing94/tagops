@@ -100,3 +100,20 @@ resource "google_cloud_run_v2_service_iam_member" "sgtm_public" {
   role     = "roles/run.invoker"
   member   = "allUsers"
 }
+
+# =====================================================
+# Phase 4 — Custom domain mapping (NO load balancer)
+# =====================================================
+
+resource "google_cloud_run_domain_mapping" "sgtm" {
+  name     = var.custom_domain
+  location = var.region
+
+  metadata {
+    namespace = var.project_id
+  }
+
+  spec {
+    route_name = google_cloud_run_v2_service.sgtm.name
+  }
+}

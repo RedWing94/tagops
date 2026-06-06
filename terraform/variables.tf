@@ -14,3 +14,9 @@ variable "container_config" {
   type        = string
   sensitive   = true
 }
+
+variable "custom_domain" {
+  description = "Custom domain for the sGTM Cloud Run service"
+  type        = string
+  default     = "data.hoerrsolutions.com"
+}
