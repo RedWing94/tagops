@@ -13,6 +13,11 @@ output "sgtm_url" {
   value       = module.sgtm.sgtm_url
 }
 
+output "sgtm_preview_url" {
+  description = "Cloud Run URL for the sGTM preview server"
+  value       = module.sgtm.sgtm_preview_url
+}
+
 output "domain_mapping_dns_records" {
   description = "DNS records to add at your hosting provider for the custom domain"
   value       = module.sgtm.domain_mapping_dns_records

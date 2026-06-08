@@ -88,6 +88,12 @@ resource "google_cloud_run_v2_service" "sgtm" {
         name  = "CONTAINER_CONFIG"
         value = var.container_config
       }
+
+      # Point the main server at the preview server for GTM debug traffic
+      env {
+        name  = "PREVIEW_SERVER_URL"
+        value = google_cloud_run_v2_service.sgtm_preview.uri
+      }
     }
   }
 }
@@ -96,6 +102,51 @@ resource "google_cloud_run_v2_service" "sgtm" {
 resource "google_cloud_run_v2_service_iam_member" "sgtm_public" {
   name     = google_cloud_run_v2_service.sgtm.name
   location = google_cloud_run_v2_service.sgtm.location
+  role     = "roles/run.invoker"
+  member   = "allUsers"
+}
+
+# --- Preview server for GTM Server-Side Preview/Debug ---
+
+resource "google_cloud_run_v2_service" "sgtm_preview" {
+  name     = "${var.service_name}-preview"
+  location = var.region
+
+  depends_on = [google_project_service.cloud_run]
+
+  template {
+    # COST GUARD: scale to zero — NEVER set min above 0
+    scaling {
+      min_instance_count = 0
+      max_instance_count = 1
+    }
+
+    service_account = google_service_account.sgtm.email
+
+    containers {
+      image = "gcr.io/cloud-tagging-10302018/gtm-cloud-image:stable"
+
+      ports {
+        container_port = 8080
+      }
+
+      env {
+        name  = "CONTAINER_CONFIG"
+        value = var.container_config
+      }
+
+      env {
+        name  = "RUN_AS_PREVIEW_SERVER"
+        value = "true"
+      }
+    }
+  }
+}
+
+# Allow unauthenticated access (preview server must be reachable by GTM)
+resource "google_cloud_run_v2_service_iam_member" "sgtm_preview_public" {
+  name     = google_cloud_run_v2_service.sgtm_preview.name
+  location = google_cloud_run_v2_service.sgtm_preview.location
   role     = "roles/run.invoker"
   member   = "allUsers"
 }
