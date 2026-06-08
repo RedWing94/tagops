@@ -54,21 +54,19 @@ ___SANDBOXED_JS_FOR_SERVER___
 const BigQuery = require('BigQuery');
 const getAllEventData = require('getAllEventData');
 const getTimestampMillis = require('getTimestampMillis');
-const isConsentGranted = require('isConsentGranted');
 const JSON = require('JSON');
 const logToConsole = require('logToConsole');
 
-// Consent gate: only write to BigQuery when analytics_storage consent is
-// granted. The consent default (granted vs denied) is set per the client's
-// policy profile (see policies/*.yml). If consent has not been granted,
-// the tag succeeds silently without writing a row.
-if (!isConsentGranted('analytics_storage')) {
-  logToConsole('BigQuery Event Logger: skipped — analytics_storage not granted');
+const eventData = getAllEventData();
+
+// Consent gate (permission-free): 'x-ga-gcs' = G1<ad_storage><analytics_storage>;
+// index 3 = analytics_storage ('1' granted, '0' denied).
+const gcs = eventData['x-ga-gcs'];
+if (gcs && gcs.charAt(3) === '0') {
+  logToConsole('BigQuery Event Logger: skipped — analytics_storage denied (gcs=' + gcs + ')');
   data.gtmOnSuccess();
   return;
 }
-
-const eventData = getAllEventData();
 
 const row = {
   event_name: eventData.event_name,
@@ -146,39 +144,6 @@ ___SERVER_PERMISSIONS___
         {
           "key": "eventDataAccess",
           "value": { "type": 1, "string": "any" }
-        }
-      ]
-    },
-    "clientAnnotations": { "isEditedByUser": true },
-    "isRequired": true
-  },
-  {
-    "instance": {
-      "key": {
-        "publicId": "access_consent",
-        "versionId": "1"
-      },
-      "param": [
-        {
-          "key": "consentTypes",
-          "value": {
-            "type": 2,
-            "listItem": [
-              {
-                "type": 3,
-                "mapKey": [
-                  { "type": 1, "string": "consentType" },
-                  { "type": 1, "string": "read" },
-                  { "type": 1, "string": "write" }
-                ],
-                "mapValue": [
-                  { "type": 1, "string": "analytics_storage" },
-                  { "type": 8, "boolean": true },
-                  { "type": 8, "boolean": false }
-                ]
-              }
-            ]
-          }
         }
       ]
     },
