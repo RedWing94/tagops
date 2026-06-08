@@ -1,0 +1,40 @@
+# ============================================================================
+# Client Configuration — <client-name>
+# ============================================================================
+# This file defines the client's tracking profile: which compliance policy
+# applies, which CMP is deployed, and any consent overrides.
+
+client: "<client-name>"
+project_id: "<gcp-project-id>"
+
+# --- Compliance policy ---
+# Select one of: ecomm_standard, eu_strict, health_strict, finance
+# See policies/ for what each profile controls.
+policy_profile: ecomm_standard
+
+# --- Consent Management Platform ---
+# Which CMP is deployed on the client's site.
+# Options: cookieyes | onetrust | osano | cookiebot | other
+cmp: cookieyes
+
+# --- Consent defaults override (optional) ---
+# Override specific region defaults from the selected policy profile.
+# Useful when a client needs a region-specific rule that the base profile
+# doesn't cover (e.g., stricter defaults for California).
+#
+# consent_defaults:
+#   - regions: [CA]
+#     analytics_storage:   denied
+#     ad_storage:          denied
+#     ad_user_data:        denied
+#     ad_personalization:  denied
+
+# --- Events (from tracking-plan/canonical-events.yml) ---
+# events:
+#   - page_view
+#   - session_start
+#   - purchase
+#   - lead
+#
+# custom_events:
+#   ...

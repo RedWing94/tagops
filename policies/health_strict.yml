@@ -1,0 +1,40 @@
+# ============================================================================
+# Policy Profile: Health Strict
+# ============================================================================
+# For: Healthcare providers, telehealth, health-adjacent apps, wellness brands
+#      that may collect PHI or health-related data.
+# Regulation: HIPAA, Washington My Health My Data Act, FTC Health Breach
+#             Notification Rule, state health privacy laws.
+# Pattern: All signals denied by default. PHI / PII must NEVER reach ad
+#          platforms — not even hashed. Warehouse-only for PII.
+
+consent_defaults:
+  # All regions — denied until explicit opt-in
+  - regions: [_default]
+    analytics_storage:   denied
+    ad_storage:          denied
+    ad_user_data:        denied
+    ad_personalization:  denied
+
+# ALL destinations gated — nothing fires before consent
+require_consent_before:
+  - ga4
+  - meta
+  - google_ads
+  - tiktok
+  - snapchat
+
+# Where PII is permitted to flow
+pii_routing:
+  warehouse: true               # Raw PII stored in BigQuery leads vault (on consent)
+  ad_platforms_hashed: false    # PII must NOT go to ad platforms — not even hashed
+
+# Short retention — minimize PHI exposure window
+lead_retention_days: 90
+
+notes: >
+  Healthcare profile. All consent signals denied by default everywhere.
+  PII / PHI is stored in the BigQuery leads vault only — it must NEVER
+  be sent to ad platforms, even SHA-256 hashed, because health-related
+  data combined with hashed identifiers can constitute PHI under HIPAA
+  and the WA My Health My Data Act. 90-day retention minimizes risk.

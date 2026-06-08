@@ -1,0 +1,40 @@
+# ============================================================================
+# Policy Profile: Finance
+# ============================================================================
+# For: Banks, credit unions, fintechs, insurance, financial advisors —
+#      any entity handling NPI (nonpublic personal information).
+# Regulation: GLBA (Gramm-Leach-Bliley Act), state financial privacy laws,
+#             CCPA/CPRA (for CA financial data carve-outs).
+# Pattern: All signals denied by default. Ad platforms gated on consent.
+#          PII may flow to ad platforms hashed (with consent), unlike health.
+
+consent_defaults:
+  # All regions — denied until explicit opt-in
+  - regions: [_default]
+    analytics_storage:   denied
+    ad_storage:          denied
+    ad_user_data:        denied
+    ad_personalization:  denied
+
+# Ad platforms gated — GA4 allowed in cookieless mode before consent
+require_consent_before:
+  - meta
+  - google_ads
+  - tiktok
+  - snapchat
+
+# Where PII is permitted to flow
+pii_routing:
+  warehouse: true               # Raw PII stored in BigQuery leads vault
+  ad_platforms_hashed: true     # SHA-256 hashed PII sent to ad platforms (on consent)
+
+# How long raw PII is retained in the leads vault
+lead_retention_days: 365
+
+notes: >
+  Financial services profile. All consent signals denied by default.
+  GA4 fires in cookieless mode before consent; ad platforms are gated
+  until consent is granted. PII flows to the warehouse raw and to ad
+  platforms SHA-256 hashed (with consent). Unlike health_strict, hashed
+  PII to ad platforms is permitted because financial data + hashed IDs
+  don't carry the same re-identification risk as PHI under GLBA.

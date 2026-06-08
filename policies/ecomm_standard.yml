@@ -1,0 +1,51 @@
+# ============================================================================
+# Policy Profile: E-Commerce Standard
+# ============================================================================
+# For: Typical DTC / e-commerce sites selling to US + international customers.
+# Regulation: GDPR (EU), UK GDPR, nFADP (CH), US state privacy laws (CCPA, etc.)
+# Pattern: Opt-in in EU/UK/CH (denied until consent), opt-out in US (granted
+#          by default, user can revoke).
+
+consent_defaults:
+  # EU / UK / Switzerland — opt-in (GDPR requires prior consent)
+  - regions: [EU, UK, CH]
+    analytics_storage:   denied
+    ad_storage:          denied
+    ad_user_data:        denied
+    ad_personalization:  denied
+
+  # United States — opt-out (granted by default, honor revocation)
+  - regions: [US]
+    analytics_storage:   granted
+    ad_storage:          granted
+    ad_user_data:        granted
+    ad_personalization:  granted
+
+  # Rest of world — granted by default (adjust per client if needed)
+  - regions: [_default]
+    analytics_storage:   granted
+    ad_storage:          granted
+    ad_user_data:        granted
+    ad_personalization:  granted
+
+# Destinations that must NOT fire until the relevant consent signal is granted.
+# GA4 is allowed to fire in cookieless/consent mode (basic pings, no cookies).
+require_consent_before:
+  - meta
+  - google_ads
+  - tiktok
+  - snapchat
+
+# Where PII is permitted to flow
+pii_routing:
+  warehouse: true               # Raw PII stored in BigQuery leads vault
+  ad_platforms_hashed: true     # SHA-256 hashed PII sent to ad platforms (on consent)
+
+# How long raw PII is retained in the leads vault
+lead_retention_days: 395        # ~13 months — covers full YoY comparison window
+
+notes: >
+  Standard e-commerce profile. GDPR regions default to denied (opt-in);
+  US regions default to granted (opt-out, honoring state laws like CCPA).
+  GA4 fires in cookieless mode before consent; ad platforms are gated.
+  PII flows to the warehouse raw and to ad platforms SHA-256 hashed.

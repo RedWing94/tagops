@@ -1,0 +1,38 @@
+# ============================================================================
+# Policy Profile: EU Strict
+# ============================================================================
+# For: Sites with an EU-primary or EU-only audience, or brands choosing the
+#      strictest GDPR interpretation globally.
+# Regulation: GDPR (EU), UK GDPR, nFADP (CH).
+# Pattern: All signals denied by default everywhere. Nothing fires until
+#          the user explicitly opts in — including GA4.
+
+consent_defaults:
+  # All regions — denied until explicit opt-in
+  - regions: [_default]
+    analytics_storage:   denied
+    ad_storage:          denied
+    ad_user_data:        denied
+    ad_personalization:  denied
+
+# ALL destinations gated — no tag fires before consent, including GA4.
+require_consent_before:
+  - ga4
+  - meta
+  - google_ads
+  - tiktok
+  - snapchat
+
+# Where PII is permitted to flow
+pii_routing:
+  warehouse: true               # Raw PII stored in BigQuery leads vault (on consent)
+  ad_platforms_hashed: true     # SHA-256 hashed PII sent to ad platforms (on consent)
+
+# How long raw PII is retained in the leads vault
+lead_retention_days: 365
+
+notes: >
+  Strictest GDPR profile. All consent signals denied globally by default.
+  No tag — including GA4 — fires until the user explicitly grants consent.
+  PII flows to the warehouse and ad platforms only after consent is given.
+  Use this for EU-primary sites or brands that want uniform strict consent.
