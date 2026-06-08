@@ -79,6 +79,16 @@ pii_fields:
 # ----------------------------------------------------------------------------
 # Canonical events
 # ----------------------------------------------------------------------------
+# Conversion / Key Event model:
+#
+#   key_event_in:  — destinations where this event is marked as a Key Event
+#                    (e.g. GA4 uses this for reporting and audience building).
+#   conversion_in: — ad platforms where this event is sent as a conversion
+#                    for bid optimization (e.g. Google Ads, Meta CAPI).
+#
+# These are DEFAULTS. A client can override either list per event in their
+# clients/<client>/config.yaml (see the extension example at the bottom).
+# An empty list [] means the event is not flagged anywhere by default.
 
 canonical_events:
 
@@ -86,7 +96,8 @@ canonical_events:
 
   page_view:
     description: "Fired on every page load or virtual navigation."
-    is_conversion: false
+    key_event_in:  []
+    conversion_in: []
     params:
       - page_location     # required
       - page_title        # required
@@ -94,7 +105,8 @@ canonical_events:
 
   session_start:
     description: "Fired once per new session (GA4 auto-event, mirrored server-side)."
-    is_conversion: false
+    key_event_in:  []
+    conversion_in: []
     params:
       - session_id
       - page_location
@@ -103,7 +115,8 @@ canonical_events:
 
   view_item:
     description: "User views a product or service detail page."
-    is_conversion: false
+    key_event_in:  []
+    conversion_in: []
     params:
       - item_id           # required
       - item_name         # required
@@ -114,7 +127,8 @@ canonical_events:
 
   add_to_cart:
     description: "User adds an item to the cart."
-    is_conversion: false
+    key_event_in:  [ga4]
+    conversion_in: []     # off by default — ecommerce clients can add [meta] etc.
     params:
       - item_id           # required
       - item_name         # required
@@ -124,7 +138,8 @@ canonical_events:
 
   begin_checkout:
     description: "User initiates the checkout flow."
-    is_conversion: false
+    key_event_in:  [ga4]
+    conversion_in: []     # off by default — enable per client as needed
     params:
       - items             # required — array of cart items
       - value
@@ -133,7 +148,8 @@ canonical_events:
 
   purchase:
     description: "Completed transaction."
-    is_conversion: true
+    key_event_in:  [ga4]
+    conversion_in: [google_ads, meta, tiktok, snapchat]
     params:
       - transaction_id    # required
       - value             # required
@@ -149,7 +165,8 @@ canonical_events:
     description: >
       A qualified lead event. The lead_type param distinguishes B2B
       variants so a single canonical event covers all lead forms.
-    is_conversion: true
+    key_event_in:  [ga4]
+    conversion_in: [google_ads, meta]
     params:
       - lead_type         # required — one of the canonical values below
       - form_id
@@ -168,14 +185,16 @@ canonical_events:
 
   scroll:
     description: "User scrolls past a depth threshold."
-    is_conversion: false
+    key_event_in:  []
+    conversion_in: []
     params:
       - scroll_depth      # required — 25, 50, 75, or 90
       - page_location
 
   outbound_click:
     description: "User clicks a link that leaves the site."
-    is_conversion: false
+    key_event_in:  []
+    conversion_in: []
     params:
       - outbound_url      # required
       - link_text
@@ -187,21 +206,27 @@ canonical_events:
 # ============================================================================
 #
 # Each client has a config at clients/<client>/config.yaml. They select
-# which canonical events to enable and add bespoke custom events on top.
-# Custom events inherit the standard_params definitions above.
+# which canonical events to enable, override conversion defaults per event,
+# and add bespoke custom events on top. Custom events inherit the
+# standard_params definitions above.
 #
 # --- Example: clients/acme-corp/config.yaml ---
 #
 #   client: acme-corp
 #   project_id: acme-prod-12345
 #
-#   # Pick the canonical events this client uses
+#   # Pick the canonical events this client uses.
+#   # Override key_event_in / conversion_in per event where the defaults
+#   # don't fit. Omitted fields inherit the canonical defaults above.
 #   events:
 #     - page_view
 #     - session_start
 #     - view_item
-#     - add_to_cart
-#     - begin_checkout
+#     - add_to_cart:
+#         # Ecommerce client wants add_to_cart as a Meta conversion too
+#         conversion_in: [meta]
+#     - begin_checkout:
+#         conversion_in: [google_ads, meta]
 #     - purchase
 #     - lead
 #     - scroll
@@ -210,7 +235,8 @@ canonical_events:
 #   custom_events:
 #     video_play:
 #       description: "User plays an embedded product video."
-#       is_conversion: false
+#       key_event_in:  []
+#       conversion_in: []
 #       params:
 #         - video_id:    { type: string,  description: "CMS video identifier" }
 #         - video_title: { type: string,  description: "Video title" }
@@ -218,9 +244,10 @@ canonical_events:
 #
 #     plan_comparison:
 #       description: "User views the plan comparison table."
-#       is_conversion: false
+#       key_event_in:  [ga4]          # track as Key Event in GA4
+#       conversion_in: []
 #       params:
-#         - page_location           # reuse a standard param
+#         - page_location             # reuse a standard param
 #         - plans_shown: { type: string, description: "Comma-separated plan names" }
 #
 # Rules for custom events:
