@@ -1,0 +1,13 @@
+# Copy this file to ~/.dbt/profiles.yml
+# Authenticates via gcloud application-default credentials (no key file needed).
+
+tagops:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: oauth
+      project: tagops-498522
+      dataset: dbt_marts
+      location: US
+      threads: 2

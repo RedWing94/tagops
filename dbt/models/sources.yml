@@ -1,0 +1,41 @@
+version: 2
+
+sources:
+  - name: tagops_analytics
+    database: tagops-498522
+    schema: tagops_analytics
+    tables:
+      - name: events
+        description: "Raw sGTM events streamed from the BigQuery Event Logger tag"
+        columns:
+          - name: event_name
+            description: "GA4 event name"
+            data_type: STRING
+            tests:
+              - not_null
+          - name: event_timestamp
+            description: "Server-side timestamp in epoch milliseconds"
+            data_type: INT64
+            tests:
+              - not_null
+          - name: client_id
+            description: "GA4 client ID"
+            data_type: STRING
+          - name: page_location
+            description: "Full page URL"
+            data_type: STRING
+          - name: page_referrer
+            description: "Referrer URL"
+            data_type: STRING
+          - name: page_title
+            description: "Document title"
+            data_type: STRING
+          - name: user_agent
+            description: "Browser user-agent string"
+            data_type: STRING
+          - name: ip_override
+            description: "Client IP address"
+            data_type: STRING
+          - name: event_data
+            description: "Full event payload as JSON string"
+            data_type: STRING
