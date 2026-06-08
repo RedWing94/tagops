@@ -1,0 +1,26 @@
+version: 2
+
+models:
+  - name: fct_sessions
+    description: "One row per client_id + session_id with aggregated session metrics"
+    columns:
+      - name: session_id
+        tests:
+          - not_null
+
+  - name: fct_conversions
+    description: "One row per conversion event (lead, purchase, etc.)"
+    columns:
+      - name: conversion_event
+        tests:
+          - not_null
+          - accepted_values:
+              values:
+                - lead
+                - generate_lead
+                - get_in_touch
+                - purchase
+                - appointment_booked
+
+  - name: fct_page_views
+    description: "One row per page_view event with page context and geo"
