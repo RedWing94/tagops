@@ -1,0 +1,36 @@
+version: 2
+
+models:
+  - name: fct_conversions
+    description: >
+      One row per conversion event. Filtered to: lead, generate_lead,
+      get_in_touch, purchase, appointment_booked. Includes lead form
+      fields and page context.
+    columns:
+      - name: event_timestamp
+        description: "When the conversion occurred"
+      - name: client_id
+        description: "GA4 client ID"
+      - name: session_id
+        description: "GA4 session ID"
+      - name: conversion_event
+        description: "The canonical event name that triggered this conversion"
+        tests:
+          - not_null
+          - accepted_values:
+              values:
+                - lead
+                - generate_lead
+                - get_in_touch
+                - purchase
+                - appointment_booked
+      - name: form_name
+        description: "Form name (for lead events)"
+      - name: interest
+        description: "Lead interest / topic"
+      - name: company_size
+        description: "Company size from lead form"
+      - name: job_title
+        description: "Job title from lead form"
+      - name: page_location
+        description: "Page URL where the conversion happened"

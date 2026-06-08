@@ -1,0 +1,25 @@
+version: 2
+
+models:
+  - name: fct_page_views
+    description: >
+      One row per page_view event with page context and geo fields.
+    columns:
+      - name: event_timestamp
+        description: "When the page view occurred"
+        tests:
+          - not_null
+      - name: client_id
+        description: "GA4 client ID"
+      - name: session_id
+        description: "GA4 session ID"
+      - name: page_location
+        description: "Full page URL"
+      - name: page_title
+        description: "Document title"
+      - name: page_referrer
+        description: "Referrer URL"
+      - name: geo_country
+        description: "Country code"
+      - name: geo_region
+        description: "Region code"

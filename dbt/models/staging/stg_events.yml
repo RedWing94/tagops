@@ -1,0 +1,47 @@
+version: 2
+
+models:
+  - name: stg_events
+    description: >
+      Staging view over the raw sGTM events table. Parses the event_data
+      JSON blob into typed columns and converts the epoch-ms timestamp
+      to a BigQuery TIMESTAMP.
+    columns:
+      - name: event_name
+        description: "GA4 event name (page_view, user_engagement, lead, etc.)"
+        tests:
+          - not_null
+      - name: event_timestamp
+        description: "Server-side timestamp converted from epoch milliseconds to TIMESTAMP"
+        tests:
+          - not_null
+      - name: client_id
+        description: "GA4 client ID (cookie-based)"
+      - name: session_id
+        description: "GA4 session ID extracted from event_data JSON ($.ga_session_id)"
+      - name: session_number
+        description: "GA4 session number for this client ($.ga_session_number, INT64)"
+      - name: page_location
+        description: "Full page URL including query string"
+      - name: page_referrer
+        description: "Previous page URL"
+      - name: page_title
+        description: "Document title"
+      - name: geo_country
+        description: "Country code from event_location ($.event_location.country)"
+      - name: geo_region
+        description: "Region code from event_location ($.event_location.region)"
+      - name: form_name
+        description: "Form name for lead events ($.form_name)"
+      - name: interest
+        description: "Lead interest / topic ($.interest)"
+      - name: company_size
+        description: "Company size from lead form ($.company_size)"
+      - name: job_title
+        description: "Job title from lead form ($.job_title)"
+      - name: percent_scrolled
+        description: "Scroll depth percentage ($.percent_scrolled, INT64)"
+      - name: engagement_time_msec
+        description: "Engagement time in milliseconds ($.engagement_time_msec, INT64)"
+      - name: raw_event_data
+        description: "Original event_data JSON string preserved for ad-hoc analysis"

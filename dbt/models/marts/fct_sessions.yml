@@ -1,0 +1,36 @@
+version: 2
+
+models:
+  - name: fct_sessions
+    description: >
+      One row per client_id + session_id. Aggregates event-level data
+      into session-level metrics: start/end timestamps, pageview count,
+      total events, conversion count, and geo.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - client_id
+            - session_id
+    columns:
+      - name: client_id
+        description: "GA4 client ID"
+      - name: session_id
+        description: "GA4 session ID"
+        tests:
+          - not_null
+      - name: session_start
+        description: "Timestamp of the first event in the session"
+        tests:
+          - not_null
+      - name: session_end
+        description: "Timestamp of the last event in the session"
+      - name: pageviews
+        description: "Count of page_view events in the session"
+      - name: total_events
+        description: "Total event count in the session"
+      - name: conversions
+        description: "Count of conversion events (lead, generate_lead, get_in_touch, purchase, appointment_booked)"
+      - name: geo_country
+        description: "Country code (max across session events)"
+      - name: geo_region
+        description: "Region code (max across session events)"
