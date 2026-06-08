@@ -1,0 +1,230 @@
+# ============================================================================
+# TagOps — Canonical Event Taxonomy
+# ============================================================================
+#
+# This is the shared contract every client maps to. Client implementations
+# reference these events by name; the standard params and types below drive
+# GTM tag generation, BigQuery table schemas, and downstream dbt models.
+#
+# Rules:
+#   - Clients MUST use canonical event names for standard interactions.
+#   - Clients MAY add custom_events (see example at the bottom of this file).
+#   - Custom events must NOT reuse a canonical event name.
+#   - Parameter names are snake_case and consistent across all clients.
+#
+# ============================================================================
+
+
+# ----------------------------------------------------------------------------
+# Standard parameter definitions
+# ----------------------------------------------------------------------------
+# Every parameter used across canonical events is defined here once with its
+# type. Tags and models reference these names exactly — never invent synonyms.
+
+standard_params:
+  # Identifiers
+  client_id:          { type: string,  description: "GA4 client ID (cookie-based)" }
+  user_id:            { type: string,  description: "Authenticated user ID (if available)" }
+  session_id:         { type: string,  description: "GA4 session ID" }
+
+  # Page context
+  page_location:      { type: string,  description: "Full URL including query string" }
+  page_title:         { type: string,  description: "Document title" }
+  page_referrer:      { type: string,  description: "Previous page URL" }
+
+  # E-commerce — item-level
+  item_id:            { type: string,  description: "Product / SKU identifier" }
+  item_name:          { type: string,  description: "Human-readable product name" }
+  item_category:      { type: string,  description: "Primary product category" }
+  item_variant:       { type: string,  description: "Size, color, or plan tier" }
+  price:              { type: number,  description: "Unit price in the given currency" }
+  quantity:           { type: integer, description: "Number of units" }
+  currency:           { type: string,  description: "ISO 4217 currency code (e.g. USD)" }
+
+  # E-commerce — transaction-level
+  transaction_id:     { type: string,  description: "Unique order / transaction identifier" }
+  value:              { type: number,  description: "Total monetary value of the event" }
+  tax:                { type: number,  description: "Tax amount" }
+  shipping:           { type: number,  description: "Shipping cost" }
+  coupon:             { type: string,  description: "Coupon code applied" }
+  items:              { type: "array<item>", description: "Array of item objects (item_id, item_name, price, quantity, etc.)" }
+
+  # Lead / B2B
+  lead_type:          { type: string,  description: "Lead variant — see canonical values under the lead event" }
+  form_id:            { type: string,  description: "Identifier of the form submitted" }
+  form_name:          { type: string,  description: "Human-readable form name" }
+
+  # Engagement
+  scroll_depth:       { type: integer, description: "Percentage of page scrolled (0–100)" }
+  outbound_url:       { type: string,  description: "Destination URL for outbound clicks" }
+  link_text:          { type: string,  description: "Anchor text of the clicked link" }
+
+
+# ----------------------------------------------------------------------------
+# PII fields — special handling required
+# ----------------------------------------------------------------------------
+# These fields are NEVER sent to GA4.
+#   - BigQuery leads vault: stored raw (encrypted at rest).
+#   - Ad platforms (Meta CAPI, Google Ads): sent SHA-256 hashed only.
+#
+# Any tag or model that touches these fields must enforce this routing.
+
+pii_fields:
+  - { name: first_name, type: string, description: "Contact first name" }
+  - { name: last_name,  type: string, description: "Contact last name" }
+  - { name: email,      type: string, description: "Contact email address" }
+  - { name: phone,      type: string, description: "Contact phone (E.164 format preferred)" }
+
+
+# ----------------------------------------------------------------------------
+# Canonical events
+# ----------------------------------------------------------------------------
+
+canonical_events:
+
+  # --- Pageview & session ---
+
+  page_view:
+    description: "Fired on every page load or virtual navigation."
+    is_conversion: false
+    params:
+      - page_location     # required
+      - page_title        # required
+      - page_referrer
+
+  session_start:
+    description: "Fired once per new session (GA4 auto-event, mirrored server-side)."
+    is_conversion: false
+    params:
+      - session_id
+      - page_location
+
+  # --- E-commerce funnel ---
+
+  view_item:
+    description: "User views a product or service detail page."
+    is_conversion: false
+    params:
+      - item_id           # required
+      - item_name         # required
+      - item_category
+      - item_variant
+      - price
+      - currency
+
+  add_to_cart:
+    description: "User adds an item to the cart."
+    is_conversion: false
+    params:
+      - item_id           # required
+      - item_name         # required
+      - quantity
+      - price
+      - currency
+
+  begin_checkout:
+    description: "User initiates the checkout flow."
+    is_conversion: false
+    params:
+      - items             # required — array of cart items
+      - value
+      - currency
+      - coupon
+
+  purchase:
+    description: "Completed transaction."
+    is_conversion: true
+    params:
+      - transaction_id    # required
+      - value             # required
+      - currency          # required
+      - tax
+      - shipping
+      - coupon
+      - items             # required
+
+  # --- Lead generation ---
+
+  lead:
+    description: >
+      A qualified lead event. The lead_type param distinguishes B2B
+      variants so a single canonical event covers all lead forms.
+    is_conversion: true
+    params:
+      - lead_type         # required — one of the canonical values below
+      - form_id
+      - form_name
+      - value             # optional estimated lead value
+      - currency
+    lead_types:
+      - demo_request          # Requested a product demo
+      - whitepaper            # Downloaded a gated asset
+      - webinar               # Registered for a webinar
+      - pricing_view          # Viewed or requested pricing
+      - appointment_booked    # Scheduled a call or meeting
+      - contact_form          # General contact / inquiry form
+
+  # --- Engagement ---
+
+  scroll:
+    description: "User scrolls past a depth threshold."
+    is_conversion: false
+    params:
+      - scroll_depth      # required — 25, 50, 75, or 90
+      - page_location
+
+  outbound_click:
+    description: "User clicks a link that leaves the site."
+    is_conversion: false
+    params:
+      - outbound_url      # required
+      - link_text
+      - page_location
+
+
+# ============================================================================
+# Client extension example
+# ============================================================================
+#
+# Each client has a config at clients/<client>/config.yaml. They select
+# which canonical events to enable and add bespoke custom events on top.
+# Custom events inherit the standard_params definitions above.
+#
+# --- Example: clients/acme-corp/config.yaml ---
+#
+#   client: acme-corp
+#   project_id: acme-prod-12345
+#
+#   # Pick the canonical events this client uses
+#   events:
+#     - page_view
+#     - session_start
+#     - view_item
+#     - add_to_cart
+#     - begin_checkout
+#     - purchase
+#     - lead
+#     - scroll
+#
+#   # Add bespoke events unique to this client
+#   custom_events:
+#     video_play:
+#       description: "User plays an embedded product video."
+#       is_conversion: false
+#       params:
+#         - video_id:    { type: string,  description: "CMS video identifier" }
+#         - video_title: { type: string,  description: "Video title" }
+#         - duration_ms: { type: integer, description: "Video length in milliseconds" }
+#
+#     plan_comparison:
+#       description: "User views the plan comparison table."
+#       is_conversion: false
+#       params:
+#         - page_location           # reuse a standard param
+#         - plans_shown: { type: string, description: "Comma-separated plan names" }
+#
+# Rules for custom events:
+#   - Names must NOT collide with canonical event names.
+#   - Params can reference standard_params by name (no need to redefine type).
+#   - New params must include type and description inline.
+# ============================================================================
